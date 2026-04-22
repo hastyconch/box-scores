@@ -108,7 +108,7 @@ export type Competitor = {
   winner?: boolean;
   team: Team;
   records?: { name: string; summary: string }[];
-  linescores?: { value: number }[];
+  linescores?: { value?: number; displayValue?: string }[];
   statistics?: { name: string; abbreviation?: string; displayValue: string }[];
   leaders?: {
     name: string;

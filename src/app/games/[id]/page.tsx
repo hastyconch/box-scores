@@ -26,12 +26,13 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
         ← Back
       </Link>
 
-      <header className="rounded-2xl border bg-card p-5 mb-5">
-        <div className="text-xs text-muted-foreground mb-2">
+      <header className="rounded-2xl border bg-card p-4 sm:p-5 mb-5">
+        <div className="text-xs text-muted-foreground mb-3">
           {comp.notes?.[0]?.headline && <span>{comp.notes[0].headline} · </span>}
-          {formatLongDate(comp.date)} · {summary.gameInfo?.venue?.fullName ?? ""}
+          {formatLongDate(comp.date)}
+          {summary.gameInfo?.venue?.fullName && <> · {summary.gameInfo.venue.fullName}</>}
         </div>
-        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-4">
+        <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-2 sm:gap-4">
           <TeamBlock c={away} align="left" />
           <ScoreBlock home={home} away={away} state={state} status={comp.status?.type?.detail ?? ""} startISO={comp.date} />
           <TeamBlock c={home} align="right" />
@@ -62,9 +63,11 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
                         <span className="font-medium">{c.team.shortDisplayName}</span>
                       </span>
                     </td>
-                    {Array.from({ length: periods }).map((_, i) => (
-                      <td key={i} className="px-2">{c.linescores?.[i]?.value ?? "-"}</td>
-                    ))}
+                    {Array.from({ length: periods }).map((_, i) => {
+                      const ls = c.linescores?.[i];
+                      const val = ls?.displayValue ?? (ls?.value != null ? String(ls.value) : "-");
+                      return <td key={i} className="px-2">{val}</td>;
+                    })}
                     <td className="px-2 font-bold">{c.score}</td>
                   </tr>
                 ))}
@@ -91,8 +94,8 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
                 </div>
                 <div className="space-y-2">
                   {(tl.leaders ?? []).filter((l) => l.name !== "rating").map((l) => {
-                    const top = l.leaders[0];
-                    if (!top) return null;
+                    const top = l.leaders?.[0];
+                    if (!top?.athlete?.id) return null;
                     return (
                       <div key={l.name} className="flex items-center gap-3">
                         <div className="text-[11px] uppercase font-semibold text-muted-foreground w-10">{l.name === "pointsRebounds" ? "PTS+REB" : l.displayName}</div>
@@ -116,12 +119,12 @@ export default async function GamePage({ params }: { params: Promise<{ id: strin
 
 function TeamBlock({ c, align }: { c: import("@/lib/espn").Competitor; align: "left" | "right" }) {
   return (
-    <Link href={`/teams/${c.team.id}`} className={`flex items-center gap-3 ${align === "right" ? "flex-row-reverse text-right" : ""}`}>
-      <TeamLogo team={c.team} size={56} />
-      <div>
-        <div className="text-xs text-muted-foreground">{c.team.location}</div>
-        <div className="text-lg font-bold leading-tight">{c.team.name ?? c.team.shortDisplayName}</div>
-        {c.records?.[0]?.summary && <div className="text-xs text-muted-foreground">{c.records[0].summary}</div>}
+    <Link href={`/teams/${c.team.id}`} className={`flex flex-col items-center gap-2 min-w-0 sm:flex-row sm:gap-3 ${align === "right" ? "sm:flex-row-reverse sm:text-right" : ""}`}>
+      <TeamLogo team={c.team} size={48} className="sm:!w-14 sm:!h-14" />
+      <div className="text-center sm:text-left min-w-0">
+        <div className="text-[11px] text-muted-foreground hidden sm:block truncate">{c.team.location}</div>
+        <div className="text-sm sm:text-lg font-bold leading-tight truncate">{c.team.shortDisplayName ?? c.team.name}</div>
+        {c.records?.[0]?.summary && <div className="text-[11px] text-muted-foreground">{c.records[0].summary}</div>}
       </div>
     </Link>
   );
@@ -149,13 +152,13 @@ function ScoreBlock({
     );
   }
   return (
-    <div className="text-center px-2">
-      <div className="flex items-center gap-3 text-3xl sm:text-4xl font-bold tabular-nums">
+    <div className="text-center px-1 sm:px-2 shrink-0">
+      <div className="flex items-center justify-center gap-2 sm:gap-3 text-2xl sm:text-4xl font-bold tabular-nums">
         <span className={away.winner === false ? "opacity-50" : ""}>{away.score}</span>
-        <span className="text-muted-foreground text-xl">–</span>
+        <span className="text-muted-foreground text-base sm:text-xl">–</span>
         <span className={home.winner === false ? "opacity-50" : ""}>{home.score}</span>
       </div>
-      <div className={`text-[11px] mt-1 font-semibold uppercase ${state === "in" ? "text-negative" : "text-muted-foreground"}`}>
+      <div className={`text-[10px] sm:text-[11px] mt-1 font-semibold uppercase whitespace-nowrap ${state === "in" ? "text-negative" : "text-muted-foreground"}`}>
         {state === "in" ? `● ${status}` : "Final"}
       </div>
     </div>
@@ -173,9 +176,11 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 
 function PlayerStats({ teamBox }: { teamBox: NonNullable<NonNullable<import("@/lib/espn").GameSummary["boxscore"]>["players"]>[number] }) {
   const stat = teamBox.statistics?.[0];
-  if (!stat) return <div className="text-sm text-muted-foreground">No stats yet.</div>;
-  const labels = stat.labels;
-  const players = stat.athletes;
+  const labels = stat?.labels ?? [];
+  const players = stat?.athletes ?? [];
+  if (!stat || players.length === 0) {
+    return <div className="text-sm text-muted-foreground">No stats yet.</div>;
+  }
   return (
     <div className="overflow-x-auto -mx-4 px-4">
       <table className="w-full text-xs sm:text-sm min-w-[640px]">
