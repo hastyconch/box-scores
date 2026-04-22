@@ -10,9 +10,11 @@ export const revalidate = 30;
 export default async function HomePage() {
   const sb = await getScoreboard();
   const events = sb.events ?? [];
-  const live = events.filter((e) => e.status.type.state === "in");
-  const upcoming = events.filter((e) => e.status.type.state === "pre");
-  const finals = events.filter((e) => e.status.type.state === "post");
+  const stateOf = (e: (typeof events)[number]) =>
+    e.status?.type?.state ?? e.competitions[0]?.status?.type?.state;
+  const live = events.filter((e) => stateOf(e) === "in");
+  const upcoming = events.filter((e) => stateOf(e) === "pre");
+  const finals = events.filter((e) => stateOf(e) === "post");
 
   const today = new Date();
   return (
