@@ -1,14 +1,27 @@
-import { getScoreboard } from "@/lib/espn";
+import { getScoreboard, yyyymmdd, parseYyyymmdd } from "@/lib/espn";
 import { GameCard } from "@/components/game-card";
 import { PageHeader } from "@/components/page-header";
 import { Empty } from "@/components/empty";
+import { DateStrip } from "@/components/date-strip";
+import { CalendarPicker } from "@/components/calendar-picker";
+import { DayNavigator } from "@/components/day-navigator";
 import { formatLongDate } from "@/lib/format";
-import Link from "next/link";
 
 export const revalidate = 30;
 
-export default async function HomePage() {
-  const sb = await getScoreboard();
+export default async function HomePage({
+  searchParams,
+}: {
+  searchParams: Promise<{ date?: string }>;
+}) {
+  const { date } = await searchParams;
+  const today = new Date();
+  const todayStr = yyyymmdd(today);
+  const targetDate = date ? parseYyyymmdd(date) : today;
+  const targetStr = yyyymmdd(targetDate);
+  const isToday = targetStr === todayStr;
+
+  const sb = await getScoreboard(targetStr);
   const events = sb.events ?? [];
   const stateOf = (e: (typeof events)[number]) =>
     e.status?.type?.state ?? e.competitions[0]?.status?.type?.state;
@@ -16,33 +29,52 @@ export default async function HomePage() {
   const upcoming = events.filter((e) => stateOf(e) === "pre");
   const finals = events.filter((e) => stateOf(e) === "post");
 
-  const today = new Date();
+  const days: Date[] = [];
+  for (let i = -3; i <= 3; i++) {
+    const d = new Date(targetDate);
+    d.setUTCDate(targetDate.getUTCDate() + i);
+    days.push(d);
+  }
+
   return (
-    <div>
+    <DayNavigator date={targetStr}>
       <PageHeader
-        title="Today's Games"
-        subtitle={formatLongDate(today.toISOString())}
-        action={
-          <Link
-            href="/schedule"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
-          >
-            Schedule →
-          </Link>
-        }
+        title={isToday ? "Today's Games" : "Games"}
+        subtitle={formatLongDate(targetDate.toISOString())}
+        action={<CalendarPicker selected={targetStr} />}
       />
+      <DateStrip days={days} selected={targetStr} />
 
-      {events.length === 0 && (
-        <Empty
-          title="No games today"
-          hint="Check the schedule for upcoming matchups."
-        />
-      )}
-
-      {live.length > 0 && <Section label="Live">{live.map((e) => <GameCard key={e.id} event={e} />)}</Section>}
-      {upcoming.length > 0 && <Section label="Upcoming">{upcoming.map((e) => <GameCard key={e.id} event={e} />)}</Section>}
-      {finals.length > 0 && <Section label="Final">{finals.map((e) => <GameCard key={e.id} event={e} />)}</Section>}
-    </div>
+      <div className="mt-4">
+        {events.length === 0 && (
+          <Empty
+            title="No games on this date"
+            hint="Swipe or use ← → to browse days."
+          />
+        )}
+        {live.length > 0 && (
+          <Section label="Live">
+            {live.map((e) => (
+              <GameCard key={e.id} event={e} />
+            ))}
+          </Section>
+        )}
+        {upcoming.length > 0 && (
+          <Section label={isToday ? "Upcoming" : "Scheduled"}>
+            {upcoming.map((e) => (
+              <GameCard key={e.id} event={e} />
+            ))}
+          </Section>
+        )}
+        {finals.length > 0 && (
+          <Section label="Final">
+            {finals.map((e) => (
+              <GameCard key={e.id} event={e} />
+            ))}
+          </Section>
+        )}
+      </div>
+    </DayNavigator>
   );
 }
 

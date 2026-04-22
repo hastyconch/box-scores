@@ -6,8 +6,7 @@ import { usePathname } from "next/navigation";
 type Item = { href: string; label: string; icon: React.ReactNode };
 
 const ITEMS: Item[] = [
-  { href: "/", label: "Today", icon: <IconBall /> },
-  { href: "/schedule", label: "Schedule", icon: <IconCalendar /> },
+  { href: "/", label: "Games", icon: <IconBall /> },
   { href: "/standings", label: "Standings", icon: <IconList /> },
   { href: "/leaders", label: "Leaders", icon: <IconTrophy /> },
   { href: "/playoffs", label: "Playoffs", icon: <IconBracket /> },
@@ -66,7 +65,7 @@ export function BottomNav() {
   const pathname = usePathname();
   return (
     <nav className="md:hidden fixed bottom-0 inset-x-0 z-30 border-t bg-background/95 backdrop-blur">
-      <ul className="grid grid-cols-6">
+      <ul className="grid grid-cols-5">
         {ITEMS.map((item) => {
           const active = isActive(pathname, item.href);
           return (
@@ -94,14 +93,6 @@ function IconBall() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="9" />
       <path d="M3 12h18M12 3v18M5 5c4 4 10 10 14 14M19 5c-4 4-10 10-14 14" />
-    </svg>
-  );
-}
-function IconCalendar() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect x="3" y="4" width="18" height="17" rx="2" />
-      <path d="M16 2v4M8 2v4M3 10h18" />
     </svg>
   );
 }
