@@ -24,6 +24,18 @@ export function yyyymmdd(d: Date): string {
   return `${y}${m}${day}`;
 }
 
+// NBA "today" follows US Eastern time — matches ESPN's scoreboard rollover.
+export function todayYyyymmdd(): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/New_York",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  })
+    .format(new Date())
+    .replace(/-/g, "");
+}
+
 export function parseYyyymmdd(s: string): Date {
   const y = Number(s.slice(0, 4));
   const m = Number(s.slice(4, 6)) - 1;

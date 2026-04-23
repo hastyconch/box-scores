@@ -8,7 +8,7 @@ export function formatGameDate(iso: string, opts: Intl.DateTimeFormatOptions = {
 }
 
 export function formatLongDate(iso: string): string {
-  return new Date(iso).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric" });
+  return new Date(iso).toLocaleDateString([], { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
 }
 
 export function isSameDay(a: Date, b: Date): boolean {

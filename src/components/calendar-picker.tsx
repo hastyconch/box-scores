@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { yyyymmdd, parseYyyymmdd } from "@/lib/espn";
+import { yyyymmdd, parseYyyymmdd, todayYyyymmdd } from "@/lib/espn";
 
 export function CalendarPicker({ selected }: { selected: string }) {
   const router = useRouter();
@@ -38,7 +38,7 @@ export function CalendarPicker({ selected }: { selected: string }) {
   const daysInMonth = new Date(
     Date.UTC(view.getUTCFullYear(), view.getUTCMonth() + 1, 0)
   ).getUTCDate();
-  const todayStr = yyyymmdd(new Date());
+  const todayStr = todayYyyymmdd();
 
   const cells: (Date | null)[] = [];
   for (let i = 0; i < firstDow; i++) cells.push(null);

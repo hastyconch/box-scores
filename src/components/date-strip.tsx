@@ -1,8 +1,8 @@
 import Link from "next/link";
-import { yyyymmdd } from "@/lib/espn";
+import { yyyymmdd, todayYyyymmdd } from "@/lib/espn";
 
 export function DateStrip({ days, selected }: { days: Date[]; selected: string }) {
-  const todayStr = yyyymmdd(new Date());
+  const todayStr = todayYyyymmdd();
   const onToday = selected === todayStr;
 
   return (

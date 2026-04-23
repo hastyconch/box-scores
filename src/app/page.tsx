@@ -1,10 +1,11 @@
-import { getScoreboard, yyyymmdd, parseYyyymmdd } from "@/lib/espn";
+import { getScoreboard, parseYyyymmdd, todayYyyymmdd } from "@/lib/espn";
 import { GameCard } from "@/components/game-card";
 import { PageHeader } from "@/components/page-header";
 import { Empty } from "@/components/empty";
 import { DateStrip } from "@/components/date-strip";
 import { CalendarPicker } from "@/components/calendar-picker";
 import { DayNavigator } from "@/components/day-navigator";
+import { RefreshButton } from "@/components/refresh-button";
 import { formatLongDate } from "@/lib/format";
 
 export const revalidate = 30;
@@ -15,10 +16,9 @@ export default async function HomePage({
   searchParams: Promise<{ date?: string }>;
 }) {
   const { date } = await searchParams;
-  const today = new Date();
-  const todayStr = yyyymmdd(today);
-  const targetDate = date ? parseYyyymmdd(date) : today;
-  const targetStr = yyyymmdd(targetDate);
+  const todayStr = todayYyyymmdd();
+  const targetStr = date ?? todayStr;
+  const targetDate = parseYyyymmdd(targetStr);
   const isToday = targetStr === todayStr;
 
   const sb = await getScoreboard(targetStr);
@@ -41,7 +41,12 @@ export default async function HomePage({
       <PageHeader
         title={isToday ? "Today's Games" : "Games"}
         subtitle={formatLongDate(targetDate.toISOString())}
-        action={<CalendarPicker selected={targetStr} />}
+        action={
+          <div className="flex items-center gap-2">
+            <RefreshButton />
+            <CalendarPicker selected={targetStr} />
+          </div>
+        }
       />
       <DateStrip days={days} selected={targetStr} />
 
